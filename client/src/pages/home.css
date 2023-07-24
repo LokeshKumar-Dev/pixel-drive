@@ -36,7 +36,9 @@
   padding: 50px 0;
 }
 .content > * {
+  overflow: hidden;
   overflow-y: scroll;
+  padding: 10px 0;
   height: 100%;
   width: 100%;
 
@@ -56,6 +58,10 @@
   justify-self: left;
 
   position: relative;
+  transition: transform 0.3s ease-in-out;
+}
+.content-box:hover {
+  transform: scale(1.01) translateY(-1px);
 }
 .content-box > *,
 .content-box--image {

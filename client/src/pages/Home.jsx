@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import Navbar from "./Navbar";
 import MemoImage from "./MemoImage";
 
 import "./home.css";
-
-const imageUrl =
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D&w=1000&q=80";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -22,13 +18,29 @@ export default function Home() {
   const [s3Image, setS3Image] = useState([]);
   const [driveImage, setDriveImage] = useState([]);
 
+  const downloadImageFunc = (imageUrl) => {
+    fetch(imageUrl, { mode: "no-cors" })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "image.jpg"; // Specify the desired filename for the downloaded image
+        link.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch((error) => {
+        console.error("Error downloading image:", error);
+      });
+  };
+
   useEffect(() => {
     const _token = localStorage.getItem("token");
     if (_token === undefined || _token === "") return navigate("/");
 
     const userApi = async () => {
       const res = await axios
-        .get("http://localhost:4000/user/profile", {
+        .get("https://pixelapi.onrender.com/user/profile", {
           headers: { Authorization: `Bearer ${_token}` },
         })
         .catch((err) => {
@@ -44,7 +56,7 @@ export default function Home() {
     const s3Api = async () => {
       console.log("s23");
       setLoading(true);
-      const res = await axios.get("http://localhost:4000/images/s3", {
+      const res = await axios.get("https://pixelapi.onrender.com/images/s3", {
         headers: { Authorization: `Bearer ${_token}` },
       });
       console.log("s3", res);
@@ -61,9 +73,12 @@ export default function Home() {
 
     const driveApi = async () => {
       setLoading(true);
-      const res = await axios.get("http://localhost:4000/images/drive", {
-        headers: { Authorization: `Bearer ${_token}` },
-      });
+      const res = await axios.get(
+        "https://pixelapi.onrender.com/images/drive",
+        {
+          headers: { Authorization: `Bearer ${_token}` },
+        }
+      );
       console.log("drive", res);
       setLoading(false);
       setDriveImage(res.data);
@@ -132,7 +147,7 @@ export default function Home() {
           <div>
             <span
               className="cr-p"
-              onClick={() => setModal({ ...modal, status: false })}
+              onClick={() => downloadImageFunc(modal.url)}
               style={{ marginRight: "20px" }}
             >
               download

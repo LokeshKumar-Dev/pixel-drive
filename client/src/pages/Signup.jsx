@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
+import { useGoogleLogin } from "@react-oauth/google";
+import { gapi } from "gapi-script";
 
 import Navbar from "./Navbar";
 
@@ -36,7 +39,7 @@ export default function Signup() {
     }
 
     const response = await axios
-      .post("http://localhost:4000/user/", {
+      .post("https://pixelapi.onrender.com/user/", {
         name,
         email,
         password,
@@ -50,11 +53,47 @@ export default function Signup() {
       navigate("/");
     }
   };
+
+  const googleLogin = useGoogleLogin({
+    scope:
+      "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/user.emails.read",
+    onSuccess: async (tokenResponse) => {
+      console.log(tokenResponse);
+      const authInstance = gapi.auth2.getAuthInstance();
+      if (authInstance.isSignedIn.get()) {
+        const googleUser = authInstance.currentUser.get();
+        const profile = googleUser.getBasicProfile();
+
+        const nameG = profile.getName();
+        const emailG = profile.getEmail();
+
+        const response = await axios
+          .post("https://pixelapi.onrender.com/user/", {
+            name: nameG,
+            email: emailG,
+            password: "googlePassword",
+          })
+          .catch((err) => {
+            if (err.response.status === 400) return navigate("/");
+            return console.error("login err: ", err);
+            // setStatus("error");
+          });
+
+        if (response) {
+          navigate("/");
+        }
+      }
+    },
+  });
   return (
     <>
       <Navbar text="Login" link="" />
       <section className="login center">
-        <div className="login-1">Signup In G</div>
+        <div className="login-1">
+          <button onClick={() => googleLogin()} className="google-btn cr-p">
+            <img src="/google.png" alt="google" /> Signup with Google
+          </button>
+        </div>
         <div className="mid">
           <hr className="line"></hr>
           <span className="text">OR</span>

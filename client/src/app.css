@@ -96,3 +96,24 @@ section.center {
   object-position: center;
   border-radius: 50%;
 }
+
+.google-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: #fff;
+  text-align: center;
+  font-family: Inter;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 20px;
+
+  background-color: #c95252;
+  border-radius: 10px;
+  padding: 10px 50px;
+}
+.google-btn>img{
+  margin-right: 10px;
+}

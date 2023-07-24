@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
+import { gapi } from "gapi-script";
 
 import Navbar from "./Navbar";
 
@@ -15,6 +18,21 @@ export default function Login() {
     sPass: false,
   });
 
+  const response = async (email, password) => {
+    const _response = await axios
+      .post("https://pixelapi.onrender.com/user/login", {
+        email,
+        password,
+      })
+      .catch((err) => {
+        return console.error("login err: ", err);
+        // setStatus("error");
+      });
+    if (_response) {
+      localStorage.setItem("token", _response.data.token);
+      navigate("/home");
+    }
+  };
   useEffect(() => {
     const _token = localStorage.getItem("token");
     if (_token && _token !== undefined && _token !== "") {
@@ -31,26 +49,35 @@ export default function Login() {
       return setError({ ...error, password: true });
     }
 
-    const response = await axios
-      .post("http://localhost:4000/user/login", {
-        email: name,
-        password,
-      })
-      .catch((err) => {
-        return console.error("login err: ", err);
-        // setStatus("error");
-      });
-
-    if (response) {
-      localStorage.setItem("token", response.data.token);
-      navigate("/home");
-    }
+    response(name, password);
   };
+
+  const googleLogin = useGoogleLogin({
+    scope:
+      "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/user.emails.read",
+    onSuccess: (tokenResponse) => {
+      console.log(tokenResponse);
+      const authInstance = gapi.auth2.getAuthInstance();
+      if (authInstance.isSignedIn.get()) {
+        const googleUser = authInstance.currentUser.get();
+        const profile = googleUser.getBasicProfile();
+
+        const emailG = profile.getEmail();
+
+        response(emailG, "googlePassword");
+      }
+    },
+  });
+
   return (
     <>
       <Navbar text="Sign up" link="signup" />
       <section className="login center">
-        <div className="login-1">Login In G</div>
+        <div className="login-1">
+          <button onClick={() => googleLogin()} className="google-btn cr-p">
+            <img src="/google.png" alt="google" /> Login with Google
+          </button>
+        </div>
         <div className="mid">
           <hr className="line"></hr>
           <span className="text">OR</span>
